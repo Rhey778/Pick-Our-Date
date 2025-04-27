@@ -1,0 +1,138 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pick Our Second Date</title>
+  <style>
+    body { background-color: #ffe4e6; margin: 0; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; font-family: Arial, sans-serif; }
+    .card { background: white; padding: 2rem; border-radius: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; z-index: 10; width: 300px; animation: fadeIn 1s ease-in; }
+    @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
+    .heart { position: absolute; animation: fallFade linear infinite; opacity: 0.7; top: 0; }
+    @keyframes fallFade {
+      0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+      30% { opacity: 1; }
+      70% { opacity: 1; }
+      100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+    }
+    select, input, button, textarea { width: 100%; padding: 0.5rem; margin-top: 1rem; border: 1px solid #ddd; border-radius: 0.5rem; font-size: 0.9rem; }
+    h1, h2 { font-size: 1.2rem; font-weight: bold; margin-bottom: 1.2rem; white-space: normal; text-align: center; }
+    #progress { margin-bottom: 1rem; font-weight: bold; font-size: 1rem; }
+    #startButton { margin-top: 1rem; padding: 0.75rem; font-size: 1rem; background-color: #fcd5ce; border: none; border-radius: 1rem; cursor: pointer; transition: background-color 0.3s ease; }
+    #startButton:hover { background-color: #fbb1a8; }
+  </style>
+</head>
+<body>
+<div id="hearts"></div>
+<div class="card" id="coverPage">
+  <h2>👑 Princess Ronna 👑</h2>
+  <button id="startButton">Start</button>
+</div>
+<div class="card" id="card" style="display:none;">
+  <div id="progress">Step 1 of 3</div>
+  <h1 id="title">🌹 Pick Our Second Date 🌹</h1>
+  <div id="step1">
+    <label>Pick a date:</label>
+    <input type="date" id="dateInput" min="2025-04-28" max="2025-05-31">
+    <button id="nextToTime">Next</button>
+  </div>
+  <div id="step2" style="display:none;">
+    <label>Pick a time:</label>
+    <select id="timeSelect">
+      <option value="">Select time</option>
+    </select>
+    <button id="confirmSelection">Next</button>
+  </div>
+  <div id="step3" style="display:none;">
+    <label>Special Request?</label>
+    <textarea id="specialRequest" placeholder="Type any special requests here..."></textarea>
+    <button id="sendEmailButton">Send Confirmation Email 💌</button>
+  </div>
+</div>
+<script>
+  const startButton = document.getElementById('startButton');
+  const coverPage = document.getElementById('coverPage');
+  const mainCard = document.getElementById('card');
+
+  startButton.addEventListener('click', () => {
+    coverPage.style.display = 'none';
+    mainCard.style.display = 'block';
+  });
+
+  const dateInput = document.getElementById('dateInput');
+  const timeSelect = document.getElementById('timeSelect');
+  const step1 = document.getElementById('step1');
+  const step2 = document.getElementById('step2');
+  const step3 = document.getElementById('step3');
+  const title = document.getElementById('title');
+  const nextToTime = document.getElementById('nextToTime');
+  const confirmSelection = document.getElementById('confirmSelection');
+  const sendEmailButton = document.getElementById('sendEmailButton');
+  const specialRequest = document.getElementById('specialRequest');
+  const progress = document.getElementById('progress');
+
+  const times = [];
+  for (let hour = 10; hour <= 22; hour++) {
+    ['00', '15', '30', '45'].forEach(min => {
+      if (hour !== 22 || min === '00') {
+        const formattedHour = hour % 12 || 12;
+        const ampm = hour < 12 ? 'AM' : 'PM';
+        times.push(`${formattedHour}:${min} ${ampm}`);
+      }
+    });
+  }
+  times.forEach(t => {
+    const option = document.createElement('option');
+    option.value = t;
+    option.textContent = t;
+    timeSelect.appendChild(option);
+  });
+
+  nextToTime.addEventListener('click', () => {
+    if (dateInput.value) {
+      step1.style.display = 'none';
+      step2.style.display = 'block';
+      progress.innerText = 'Step 2 of 3';
+    } else {
+      alert('Please select a date first!');
+    }
+  });
+
+  confirmSelection.addEventListener('click', () => {
+    if (timeSelect.value) {
+      localStorage.setItem('pickedDate', dateInput.value);
+      localStorage.setItem('pickedTime', timeSelect.value);
+      step2.style.display = 'none';
+      step3.style.display = 'block';
+      progress.innerText = 'Step 3 of 3';
+    } else {
+      alert('Please select a time!');
+    }
+  });
+
+  sendEmailButton.addEventListener('click', () => {
+    const date = localStorage.getItem('pickedDate');
+    const time = localStorage.getItem('pickedTime');
+    const specialText = specialRequest.value.trim();
+    const formattedDate = new Date(date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+    const subject = encodeURIComponent('Second Date Selection');
+    const body = encodeURIComponent(`Date: ${formattedDate}\nTime: ${time}\nSpecial Request: ${specialText}`);
+    window.location.href = `mailto:rstee@ymail.com?subject=${subject}&body=${body}`;
+  });
+
+  function createHeart() {
+    const heart = document.createElement('div');
+    heart.classList.add('heart');
+    heart.style.left = Math.random() * 100 + 'vw';
+    heart.style.fontSize = (Math.random() * 20 + 10) + 'px';
+    heart.style.animationDuration = (10 + Math.random() * 10) + 's';
+    const heartIcons = ['❤️', '💖', '💕', '💘', '💐'];
+    heart.innerHTML = heartIcons[Math.floor(Math.random() * heartIcons.length)];
+    document.body.appendChild(heart);
+    setTimeout(() => { heart.remove(); }, 20000);
+  }
+  setInterval(createHeart, 400);
+</script>
+</body>
+</html>
